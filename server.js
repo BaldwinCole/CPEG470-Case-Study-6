@@ -49,8 +49,15 @@ app.get("/api/me", requireUser, (req, res) => {
 });
 
 app.get("/api/students/:id", requireUser, (req, res) => {
+  const id = Number(req.params.id);
+  // Access control: a student may only read their own record; the TA may
+  // read any. Previously ANY signed-in user could read ANY student's grades
+  // by changing the id (IDOR).
+  if (req.claims.role !== "ta" && Number(req.claims.sub) !== id) {
+    return res.status(403).json({ error: "You can only view your own grades." });
+  }
   const db = load();
-  const student = db.users.find((row) => row.id === Number(req.params.id) && row.role === "student");
+  const student = db.users.find((row) => row.id === id && row.role === "student");
   if (!student) return res.status(404).json({ error: "No student with that id." });
   const grades = db.grades.filter((row) => row.student_id === student.id);
   res.json({ user: publicUser(student), grades });
