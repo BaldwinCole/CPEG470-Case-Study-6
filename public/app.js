@@ -28,12 +28,15 @@ function nav(user) {
 }
 
 function loginView(error) {
+  // method="post" so a native form submit never puts the username/password
+  // in the URL query string (which would leak them into history, logs and
+  // Referer headers). The JS handler below still intercepts and sends JSON.
   return `
     <section class="narrow">
       <h1>Sign in</h1>
       <p class="lede">Demo accounts are in the project README. Use the username.</p>
       ${error ? `<p class="flash">${error}</p>` : ""}
-      <form id="login" class="stack">
+      <form id="login" class="stack" method="post" action="/api/login">
         <label><span>Username</span><input name="username" autocomplete="username" required></label>
         <label><span>Password</span><input name="password" type="password" autocomplete="current-password" required></label>
         <button type="submit">Sign in</button>
